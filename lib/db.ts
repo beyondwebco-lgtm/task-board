@@ -107,11 +107,61 @@ function getSupabaseClient() {
   return null;
 }
 
+let tablesInitialized = false;
+
+async function ensureTablesExist(pool: Pool) {
+  if (tablesInitialized) return;
+  try {
+    // Create members table
+    await pool.query(`
+      CREATE TABLE IF NOT EXISTS members (
+        id VARCHAR(50) PRIMARY KEY,
+        name VARCHAR(100) NOT NULL,
+        email VARCHAR(100),
+        avatar_color VARCHAR(30) DEFAULT 'blue',
+        role VARCHAR(50) DEFAULT 'Team Member',
+        created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+      );
+    `);
+
+    // Create tasks table
+    await pool.query(`
+      CREATE TABLE IF NOT EXISTS tasks (
+        id VARCHAR(50) PRIMARY KEY,
+        title VARCHAR(255) NOT NULL,
+        description TEXT,
+        assigned_to VARCHAR(50) REFERENCES members(id) ON DELETE CASCADE,
+        status VARCHAR(30) DEFAULT 'Pending',
+        priority VARCHAR(20) DEFAULT 'Medium',
+        due_date DATE NOT NULL,
+        created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+        updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+      );
+    `);
+
+    // Insert 5 team members if empty
+    await pool.query(`
+      INSERT INTO members (id, name, email, avatar_color, role) VALUES
+      ('mem-1', 'Neelam Vishwa', 'neelam@taskboard.com', '#2563eb', 'Senior Frontend Engineer'),
+      ('mem-2', 'Rahul', 'rahul@taskboard.com', '#7c3aed', 'Full Stack Developer'),
+      ('mem-3', 'Priya', 'priya@taskboard.com', '#ec4899', 'UI/UX Designer'),
+      ('mem-4', 'Arjun', 'arjun@taskboard.com', '#059669', 'Backend Engineer'),
+      ('mem-5', 'Sneha', 'sneha@taskboard.com', '#d97706', 'Product Manager')
+      ON CONFLICT (id) DO NOTHING;
+    `);
+
+    tablesInitialized = true;
+  } catch (err) {
+    console.warn('Auto table initialization notice:', err);
+  }
+}
+
 export async function getDbStatus() {
   const pool = getPgPool();
   if (pool) {
     try {
       await pool.query('SELECT 1');
+      await ensureTablesExist(pool);
       await pool.end();
       return { connected: true, provider: 'PostgreSQL (Neon / Direct)' };
     } catch {
@@ -136,6 +186,7 @@ export async function getMembers(): Promise<Member[]> {
   const pool = getPgPool();
   if (pool) {
     try {
+      await ensureTablesExist(pool);
       const res = await pool.query('SELECT * FROM members ORDER BY id ASC');
       await pool.end();
       if (res.rows.length > 0) return res.rows;
@@ -161,6 +212,7 @@ export async function getTasks(): Promise<Task[]> {
   const pool = getPgPool();
   if (pool) {
     try {
+      await ensureTablesExist(pool);
       const res = await pool.query('SELECT * FROM tasks ORDER BY created_at DESC');
       await pool.end();
       return res.rows.map(row => ({
