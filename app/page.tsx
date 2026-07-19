@@ -40,14 +40,32 @@ export default function DashboardPage() {
       ]);
 
       if (membersRes.success) setMembers(membersRes.data);
-      if (tasksRes.success) setTasks(tasksRes.data);
       if (dbRes.success) setDbStatus(dbRes.data);
+
+      // Check if local storage has custom tasks saved (for offline / local fallback mode)
+      const savedLocalTasks = typeof window !== 'undefined' ? localStorage.getItem('taskboard_tasks') : null;
+      if (savedLocalTasks && !dbRes.data?.connected) {
+        try {
+          setTasks(JSON.parse(savedLocalTasks));
+        } catch {
+          if (tasksRes.success) setTasks(tasksRes.data);
+        }
+      } else if (tasksRes.success) {
+        setTasks(tasksRes.data);
+      }
     } catch (err) {
       console.error('Failed to load dashboard data:', err);
     } finally {
       setLoading(false);
     }
   };
+
+  // Sync state to local storage when in fallback mode
+  useEffect(() => {
+    if (!loading && !dbStatus.connected && typeof window !== 'undefined') {
+      localStorage.setItem('taskboard_tasks', JSON.stringify(tasks));
+    }
+  }, [tasks, dbStatus.connected, loading]);
 
   useEffect(() => {
     fetchData();
