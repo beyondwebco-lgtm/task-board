@@ -67,6 +67,16 @@ TaskBoard is a fast, lightweight, and modern web application built for seamless 
 
 4. Open [http://localhost:3000](http://localhost:3000) in your browser.
 
+## 🌐 Deploying to Vercel
+
+1. Push your repository to GitHub.
+2. Import the project into **[Vercel](https://vercel.com/)**.
+3. In your Vercel Project Settings, navigate to **Settings** → **Environment Variables**.
+4. Add your Neon PostgreSQL database connection string:
+   - **Key**: `DATABASE_URL`
+   - **Value**: `postgresql://<user>:<password>@<host>/<db>?sslmode=require`
+5. Click **Deploy**. Vercel will automatically build and deploy your app with live cloud PostgreSQL persistence!
+
 ---
 
 ## 🗄️ Setting Up PostgreSQL (Neon / Supabase)
