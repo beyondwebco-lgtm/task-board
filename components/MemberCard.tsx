@@ -108,15 +108,21 @@ export const MemberCard: React.FC<MemberCardProps> = ({
             <p>No tasks assigned</p>
           </div>
         ) : (
-          tasks.map((task) => (
-            <TaskCard
-              key={task.id}
-              task={task}
-              onEdit={onEditTask}
-              onDelete={onDeleteTask}
-              onStatusChange={onStatusChange}
-            />
-          ))
+          [...tasks]
+            .sort((a, b) => {
+              if (a.status === 'Completed' && b.status !== 'Completed') return 1;
+              if (a.status !== 'Completed' && b.status === 'Completed') return -1;
+              return 0;
+            })
+            .map((task) => (
+              <TaskCard
+                key={task.id}
+                task={task}
+                onEdit={onEditTask}
+                onDelete={onDeleteTask}
+                onStatusChange={onStatusChange}
+              />
+            ))
         )}
       </div>
 
