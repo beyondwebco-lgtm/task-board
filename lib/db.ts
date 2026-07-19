@@ -24,7 +24,7 @@ export interface Task {
 const DEFAULT_MEMBERS: Member[] = [
   { id: 'mem-1', name: 'Arun', email: 'arun@taskboard.com', avatar_color: '#2563eb' },
   { id: 'mem-2', name: 'Vishwa', email: 'vishwa@taskboard.com', avatar_color: '#7c3aed' },
-  { id: 'mem-3', name: 'Manish', email: 'manish@taskboard.com', avatar_color: '#ec4899' },
+  { id: 'mem-3', name: 'Maneesh', email: 'maneesh@taskboard.com', avatar_color: '#ec4899' },
   { id: 'mem-4', name: 'Tata', email: 'tata@taskboard.com', avatar_color: '#059669' },
   { id: 'mem-5', name: 'Pavan', email: 'pavan@taskboard.com', avatar_color: '#d97706' },
 ];
@@ -142,7 +142,7 @@ async function ensureTablesExist(pool: Pool) {
       INSERT INTO members (id, name, email, avatar_color) VALUES
       ('mem-1', 'Arun', 'arun@taskboard.com', '#2563eb'),
       ('mem-2', 'Vishwa', 'vishwa@taskboard.com', '#7c3aed'),
-      ('mem-3', 'Manish', 'manish@taskboard.com', '#ec4899'),
+      ('mem-3', 'Maneesh', 'maneesh@taskboard.com', '#ec4899'),
       ('mem-4', 'Tata', 'tata@taskboard.com', '#059669'),
       ('mem-5', 'Pavan', 'pavan@taskboard.com', '#d97706')
       ON CONFLICT (id) DO UPDATE SET name = EXCLUDED.name;

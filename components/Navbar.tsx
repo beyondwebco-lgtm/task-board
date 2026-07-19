@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { LayoutGrid, Plus, Search, Database } from 'lucide-react';
+import { LayoutGrid, Plus, Search, Database, Sun, Moon } from 'lucide-react';
 
 interface NavbarProps {
   searchQuery: string;
@@ -11,6 +11,8 @@ interface NavbarProps {
   onOpenCreateModal: () => void;
   onOpenDbModal: () => void;
   dbStatus: { connected: boolean; provider: string };
+  theme: 'light' | 'dark';
+  onToggleTheme: () => void;
 }
 
 export const Navbar: React.FC<NavbarProps> = ({
@@ -21,6 +23,8 @@ export const Navbar: React.FC<NavbarProps> = ({
   onOpenCreateModal,
   onOpenDbModal,
   dbStatus,
+  theme,
+  onToggleTheme,
 }) => {
   const [currentDateStr, setCurrentDateStr] = useState('');
 
@@ -76,6 +80,17 @@ export const Navbar: React.FC<NavbarProps> = ({
             <option value="In Progress">In Progress</option>
             <option value="Completed">Completed</option>
           </select>
+
+          {/* Dark / Light Mode Toggle Button */}
+          <button
+            className="btn btn-secondary"
+            onClick={onToggleTheme}
+            title={`Switch to ${theme === 'light' ? 'Dark' : 'Light'} Mode`}
+            aria-label="Toggle Dark Mode"
+            style={{ padding: '0.45rem 0.75rem' }}
+          >
+            {theme === 'light' ? <Moon size={16} /> : <Sun size={16} style={{ color: '#f59e0b' }} />}
+          </button>
 
           {/* Database Status Indicator */}
           <button className="db-badge" onClick={onOpenDbModal} title="Click to view database settings">

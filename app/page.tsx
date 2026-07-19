@@ -14,6 +14,7 @@ export default function DashboardPage() {
   const [tasks, setTasks] = useState<Task[]>([]);
   const [loading, setLoading] = useState(true);
   const [dbStatus, setDbStatus] = useState({ connected: false, provider: 'Local Persistence (Active)' });
+  const [theme, setTheme] = useState<'light' | 'dark'>('light');
 
   // Search & Filter
   const [searchQuery, setSearchQuery] = useState('');
@@ -28,6 +29,24 @@ export default function DashboardPage() {
   const [deletingTaskId, setDeletingTaskId] = useState<string | null>(null);
 
   const [isDbModalOpen, setIsDbModalOpen] = useState(false);
+
+  // Initialize theme from LocalStorage
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      const savedTheme = (localStorage.getItem('taskboard_theme') as 'light' | 'dark') || 'light';
+      setTheme(savedTheme);
+      document.documentElement.setAttribute('data-theme', savedTheme);
+    }
+  }, []);
+
+  const handleToggleTheme = () => {
+    const nextTheme = theme === 'light' ? 'dark' : 'light';
+    setTheme(nextTheme);
+    if (typeof window !== 'undefined') {
+      localStorage.setItem('taskboard_theme', nextTheme);
+      document.documentElement.setAttribute('data-theme', nextTheme);
+    }
+  };
 
   // Fetch initial data
   const fetchData = async () => {
@@ -145,7 +164,6 @@ export default function DashboardPage() {
     const targetTask = tasks.find((t) => t.id === taskId);
     if (!targetTask || targetTask.assigned_to === targetMemberId) return;
 
-    // Optimistically update assignee
     setTasks((prev) =>
       prev.map((t) => (t.id === taskId ? { ...t, assigned_to: targetMemberId } : t))
     );
@@ -211,6 +229,8 @@ export default function DashboardPage() {
         onOpenCreateModal={() => handleOpenCreateModal()}
         onOpenDbModal={() => setIsDbModalOpen(true)}
         dbStatus={dbStatus}
+        theme={theme}
+        onToggleTheme={handleToggleTheme}
       />
 
       <main className="dashboard-main">

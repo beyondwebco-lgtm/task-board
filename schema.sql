@@ -27,7 +27,7 @@ CREATE TABLE IF NOT EXISTS tasks (
 INSERT INTO members (id, name, email, avatar_color) VALUES
 ('mem-1', 'Arun', 'arun@taskboard.com', '#2563eb'),
 ('mem-2', 'Vishwa', 'vishwa@taskboard.com', '#7c3aed'),
-('mem-3', 'Manish', 'manish@taskboard.com', '#ec4899'),
+('mem-3', 'Maneesh', 'maneesh@taskboard.com', '#ec4899'),
 ('mem-4', 'Tata', 'tata@taskboard.com', '#059669'),
 ('mem-5', 'Pavan', 'pavan@taskboard.com', '#d97706')
 ON CONFLICT (id) DO UPDATE SET name = EXCLUDED.name;
