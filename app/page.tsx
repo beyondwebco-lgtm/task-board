@@ -15,11 +15,11 @@ export default function DashboardPage() {
   const [loading, setLoading] = useState(true);
   const [dbStatus, setDbStatus] = useState({ connected: false, provider: 'Local Persistence (Active)' });
 
-  // Filtering & Search
+  // Search & Filter
   const [searchQuery, setSearchQuery] = useState('');
   const [statusFilter, setStatusFilter] = useState('All');
 
-  // Modal States
+  // Modals
   const [isTaskModalOpen, setIsTaskModalOpen] = useState(false);
   const [editingTask, setEditingTask] = useState<Task | null>(null);
   const [defaultMemberId, setDefaultMemberId] = useState<string>('');
@@ -42,7 +42,6 @@ export default function DashboardPage() {
       if (membersRes.success) setMembers(membersRes.data);
       if (dbRes.success) setDbStatus(dbRes.data);
 
-      // Check if local storage has custom tasks saved (for offline / local fallback mode)
       const savedLocalTasks = typeof window !== 'undefined' ? localStorage.getItem('taskboard_tasks') : null;
       if (savedLocalTasks && !dbRes.data?.connected) {
         try {
@@ -60,7 +59,6 @@ export default function DashboardPage() {
     }
   };
 
-  // Sync state to local storage when in fallback mode
   useEffect(() => {
     if (!loading && !dbStatus.connected && typeof window !== 'undefined') {
       localStorage.setItem('taskboard_tasks', JSON.stringify(tasks));
@@ -87,7 +85,6 @@ export default function DashboardPage() {
   // Save Task (Create or Update)
   const handleSaveTask = async (taskData: Omit<Task, 'id'> | Partial<Task>) => {
     if (editingTask) {
-      // Optimistic update
       const updatedList = tasks.map((t) =>
         t.id === editingTask.id ? ({ ...t, ...taskData } as Task) : t
       );
@@ -103,7 +100,6 @@ export default function DashboardPage() {
         console.error('Failed to update task:', err);
       }
     } else {
-      // Optimistic Add
       const tempId = `temp-${Date.now()}`;
       const tempTask: Task = {
         id: tempId,
@@ -119,7 +115,6 @@ export default function DashboardPage() {
         }).then((r) => r.json());
 
         if (res.success && res.data) {
-          // Replace temp task with real saved task from DB
           setTasks((prev) => prev.map((t) => (t.id === tempId ? res.data : t)));
         }
       } catch (err) {
@@ -128,9 +123,8 @@ export default function DashboardPage() {
     }
   };
 
-  // Status Change directly from card
+  // Quick Status Change
   const handleStatusChange = async (taskId: string, newStatus: 'Pending' | 'In Progress' | 'Completed') => {
-    // Optimistic status change
     setTasks((prev) =>
       prev.map((t) => (t.id === taskId ? { ...t, status: newStatus } : t))
     );
@@ -146,18 +140,36 @@ export default function DashboardPage() {
     }
   };
 
-  // Open Delete Confirmation
+  // Drag and drop task re-assignment handler
+  const handleTaskDrop = async (taskId: string, targetMemberId: string) => {
+    const targetTask = tasks.find((t) => t.id === taskId);
+    if (!targetTask || targetTask.assigned_to === targetMemberId) return;
+
+    // Optimistically update assignee
+    setTasks((prev) =>
+      prev.map((t) => (t.id === taskId ? { ...t, assigned_to: targetMemberId } : t))
+    );
+
+    try {
+      await fetch(`/api/tasks/${taskId}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ assigned_to: targetMemberId }),
+      });
+    } catch (err) {
+      console.error('Failed to reassign task:', err);
+    }
+  };
+
+  // Delete handlers
   const handleOpenDeleteModal = (taskId: string) => {
     setDeletingTaskId(taskId);
     setIsDeleteModalOpen(true);
   };
 
-  // Confirm Delete
   const handleConfirmDelete = async () => {
     if (!deletingTaskId) return;
     const targetId = deletingTaskId;
-
-    // Optimistic delete
     setTasks((prev) => prev.filter((t) => t.id !== targetId));
 
     try {
@@ -169,7 +181,7 @@ export default function DashboardPage() {
     }
   };
 
-  // Filter tasks based on search & status dropdown
+  // Filter tasks based on status & search
   const filteredTasks = useMemo(() => {
     return tasks.filter((t) => {
       const matchesStatus = statusFilter === 'All' || t.status === statusFilter;
@@ -202,11 +214,10 @@ export default function DashboardPage() {
       />
 
       <main className="dashboard-main">
-        {/* Dashboard Header Banner */}
+        {/* Header Stats Overview */}
         <div className="dashboard-header">
           <div className="dashboard-title-group">
             <h1>Team Dashboard</h1>
-            <p>Real-time task distribution across team members</p>
           </div>
 
           <div className="stats-summary">
@@ -235,8 +246,8 @@ export default function DashboardPage() {
         {/* 5 Column Grid Layout */}
         {loading ? (
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '300px', gap: '0.75rem', color: 'var(--text-muted)' }}>
-            <RefreshCw size={24} className="animate-spin" />
-            <span>Loading TaskBoard...</span>
+            <RefreshCw size={22} className="animate-spin" />
+            <span>Loading Task Board...</span>
           </div>
         ) : (
           <div className="members-grid">
@@ -251,6 +262,7 @@ export default function DashboardPage() {
                   onEditTask={handleOpenEditModal}
                   onDeleteTask={handleOpenDeleteModal}
                   onStatusChange={handleStatusChange}
+                  onTaskDrop={handleTaskDrop}
                 />
               );
             })}

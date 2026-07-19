@@ -42,7 +42,6 @@ export const TaskModal: React.FC<TaskModalProps> = ({
       setAssignedTo(defaultMemberId || (members[0]?.id || ''));
       setStatus('Pending');
       setPriority('Medium');
-      // Default due date to 3 days from today
       const defaultDate = new Date();
       defaultDate.setDate(defaultDate.getDate() + 3);
       setDueDate(defaultDate.toISOString().split('T')[0]);
@@ -70,9 +69,9 @@ export const TaskModal: React.FC<TaskModalProps> = ({
     <div className="modal-overlay" onClick={onClose}>
       <div className="modal-content" onClick={(e) => e.stopPropagation()}>
         <div className="modal-header">
-          <h2>{initialTask ? 'Edit Task' : 'Create New Task'}</h2>
+          <h2>{initialTask ? 'Edit Task' : 'New Task'}</h2>
           <button className="btn-icon-only" onClick={onClose} aria-label="Close modal">
-            <X size={20} />
+            <X size={18} />
           </button>
         </div>
 
@@ -84,7 +83,7 @@ export const TaskModal: React.FC<TaskModalProps> = ({
               <input
                 type="text"
                 className="form-input"
-                placeholder="e.g. Design homepage layout"
+                placeholder="e.g. Design wireframes for mobile view"
                 value={title}
                 onChange={(e) => setTitle(e.target.value)}
                 required
@@ -92,9 +91,9 @@ export const TaskModal: React.FC<TaskModalProps> = ({
               />
             </div>
 
-            {/* Assign Member */}
+            {/* Assign To Member Dropdown */}
             <div className="form-group">
-              <label className="form-label">Assign To Member *</label>
+              <label className="form-label">Assign To *</label>
               <select
                 className="form-select"
                 value={assignedTo}
@@ -103,35 +102,24 @@ export const TaskModal: React.FC<TaskModalProps> = ({
               >
                 {members.map((m) => (
                   <option key={m.id} value={m.id}>
-                    {m.name} ({m.role || 'Member'})
+                    {m.name}
                   </option>
                 ))}
               </select>
             </div>
 
-            {/* Description */}
-            <div className="form-group">
-              <label className="form-label">Description (Optional)</label>
-              <textarea
-                className="form-textarea"
-                placeholder="Add task context, notes, or subtasks..."
-                value={description}
-                onChange={(e) => setDescription(e.target.value)}
-              />
-            </div>
-
-            {/* Row: Status, Priority, Due Date */}
+            {/* Priority & Due Date */}
             <div className="form-row">
               <div className="form-group">
-                <label className="form-label">Status</label>
+                <label className="form-label">Priority</label>
                 <select
                   className="form-select"
-                  value={status}
-                  onChange={(e) => setStatus(e.target.value as any)}
+                  value={priority}
+                  onChange={(e) => setPriority(e.target.value as any)}
                 >
-                  <option value="Pending">⏳ Pending</option>
-                  <option value="In Progress">🔄 In Progress</option>
-                  <option value="Completed">✅ Completed</option>
+                  <option value="Low">Low</option>
+                  <option value="Medium">Medium</option>
+                  <option value="High">High</option>
                 </select>
               </div>
 
@@ -147,17 +135,15 @@ export const TaskModal: React.FC<TaskModalProps> = ({
               </div>
             </div>
 
+            {/* Notes / Description */}
             <div className="form-group">
-              <label className="form-label">Priority</label>
-              <select
-                className="form-select"
-                value={priority}
-                onChange={(e) => setPriority(e.target.value as any)}
-              >
-                <option value="Low">Low</option>
-                <option value="Medium">Medium</option>
-                <option value="High">High</option>
-              </select>
+              <label className="form-label">Notes (Optional)</label>
+              <textarea
+                className="form-textarea"
+                placeholder="Add context, subtasks, or links..."
+                value={description}
+                onChange={(e) => setDescription(e.target.value)}
+              />
             </div>
           </div>
 
@@ -166,8 +152,8 @@ export const TaskModal: React.FC<TaskModalProps> = ({
               Cancel
             </button>
             <button type="submit" className="btn btn-primary">
-              <Check size={16} />
-              <span>{initialTask ? 'Update Task' : 'Create Task'}</span>
+              <Check size={15} />
+              <span>{initialTask ? 'Update Task' : 'Assign Task'}</span>
             </button>
           </div>
         </form>

@@ -1,7 +1,7 @@
 'use client';
 
-import React from 'react';
-import { Plus, CheckCircle2, Clock, AlertCircle, Layers } from 'lucide-react';
+import React, { useState } from 'react';
+import { Plus, Layers } from 'lucide-react';
 import { Member, Task } from '@/lib/db';
 import { TaskCard } from './TaskCard';
 
@@ -12,6 +12,7 @@ interface MemberCardProps {
   onEditTask: (task: Task) => void;
   onDeleteTask: (taskId: string) => void;
   onStatusChange: (taskId: string, newStatus: 'Pending' | 'In Progress' | 'Completed') => void;
+  onTaskDrop: (taskId: string, targetMemberId: string) => void;
 }
 
 export const MemberCard: React.FC<MemberCardProps> = ({
@@ -21,10 +22,14 @@ export const MemberCard: React.FC<MemberCardProps> = ({
   onEditTask,
   onDeleteTask,
   onStatusChange,
+  onTaskDrop,
 }) => {
+  const [isDragOver, setIsDragOver] = useState(false);
+
   const pendingCount = tasks.filter((t) => t.status === 'Pending').length;
   const inProgressCount = tasks.filter((t) => t.status === 'In Progress').length;
   const completedCount = tasks.filter((t) => t.status === 'Completed').length;
+  const totalTasks = tasks.length;
 
   const getInitials = (name: string) => {
     return name
@@ -35,41 +40,72 @@ export const MemberCard: React.FC<MemberCardProps> = ({
       .substring(0, 2);
   };
 
+  // Drag and drop event listeners
+  const handleDragOver = (e: React.DragEvent) => {
+    e.preventDefault();
+    e.dataTransfer.dropEffect = 'move';
+    if (!isDragOver) setIsDragOver(true);
+  };
+
+  const handleDragLeave = () => {
+    setIsDragOver(false);
+  };
+
+  const handleDrop = (e: React.DragEvent) => {
+    e.preventDefault();
+    setIsDragOver(false);
+    const taskId = e.dataTransfer.getData('taskId');
+    if (taskId) {
+      onTaskDrop(taskId, member.id);
+    }
+  };
+
   return (
-    <div className="member-card">
-      {/* Header */}
+    <div
+      className={`member-card ${isDragOver ? 'drag-over' : ''}`}
+      onDragOver={handleDragOver}
+      onDragLeave={handleDragLeave}
+      onDrop={handleDrop}
+    >
+      {/* Member Header */}
       <div className="member-card-header">
         <div className="member-info">
           <div className="member-avatar" style={{ backgroundColor: member.avatar_color || '#2563eb' }}>
             {getInitials(member.name)}
           </div>
-          <div className="member-details">
+          <div>
             <h3 className="member-name">{member.name}</h3>
-            <p className="member-role">{member.role || 'Team Member'}</p>
+            <p className="member-task-count">
+              {totalTasks === 1 ? '1 active task' : `${totalTasks} active tasks`}
+            </p>
           </div>
         </div>
 
-        {/* Stats Breakdown Bar */}
-        <div className="member-card-stats">
-          <span className="stat-badge pending" title="Pending Tasks">
-            <AlertCircle size={11} /> {pendingCount}
-          </span>
-          <span className="stat-badge in-progress" title="In Progress Tasks">
-            <Clock size={11} /> {inProgressCount}
-          </span>
-          <span className="stat-badge completed" title="Completed Tasks">
-            <CheckCircle2 size={11} /> {completedCount}
-          </span>
-          <span style={{ color: 'var(--text-muted)' }}>| Total: <strong>{tasks.length}</strong></span>
-        </div>
+        {/* Progress Bar Indicator */}
+        {totalTasks > 0 && (
+          <div className="progress-bar-container" title={`${completedCount} Completed, ${inProgressCount} In Progress, ${pendingCount} Pending`}>
+            <div
+              className="progress-segment completed"
+              style={{ width: `${(completedCount / totalTasks) * 100}%` }}
+            />
+            <div
+              className="progress-segment in-progress"
+              style={{ width: `${(inProgressCount / totalTasks) * 100}%` }}
+            />
+            <div
+              className="progress-segment pending"
+              style={{ width: `${(pendingCount / totalTasks) * 100}%` }}
+            />
+          </div>
+        )}
       </div>
 
       {/* Task List */}
       <div className="task-list">
         {tasks.length === 0 ? (
           <div className="empty-tasks">
-            <Layers size={28} className="empty-tasks-icon" />
-            <p>No assigned tasks</p>
+            <Layers size={24} style={{ marginBottom: '0.4rem', opacity: 0.4 }} />
+            <p>No tasks assigned</p>
           </div>
         ) : (
           tasks.map((task) => (
@@ -84,14 +120,14 @@ export const MemberCard: React.FC<MemberCardProps> = ({
         )}
       </div>
 
-      {/* Footer Add Task Action */}
+      {/* Add Task Action */}
       <div className="add-task-footer">
         <button
           className="btn-add-task-card"
           onClick={() => onAddTaskForMember(member.id)}
         >
-          <Plus size={15} />
-          <span>Add Task for {member.name.split(' ')[0]}</span>
+          <Plus size={14} />
+          <span>Add Task</span>
         </button>
       </div>
     </div>

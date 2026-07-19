@@ -1,6 +1,6 @@
 'use client';
 
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { LayoutGrid, Plus, Search, Database } from 'lucide-react';
 
 interface NavbarProps {
@@ -22,23 +22,40 @@ export const Navbar: React.FC<NavbarProps> = ({
   onOpenDbModal,
   dbStatus,
 }) => {
+  const [currentDateStr, setCurrentDateStr] = useState('');
+
+  useEffect(() => {
+    const now = new Date();
+    const options: Intl.DateTimeFormatOptions = {
+      weekday: 'short',
+      month: 'short',
+      day: 'numeric',
+      year: 'numeric',
+    };
+    setCurrentDateStr(now.toLocaleDateString('en-US', options));
+  }, []);
+
   return (
     <header className="navbar">
       <div className="navbar-content">
         <div className="brand">
           <div className="brand-icon">
-            <LayoutGrid size={22} />
+            <LayoutGrid size={20} />
           </div>
           <div>
-            <h1 className="brand-title">TaskBoard</h1>
-            <p className="brand-subtitle">Team Task Management & Assignment</p>
+            <h1 className="brand-title">Task Board</h1>
           </div>
+          {currentDateStr && (
+            <div className="current-date-badge">
+              {currentDateStr}
+            </div>
+          )}
         </div>
 
         <div className="nav-actions">
-          {/* Search Bar */}
+          {/* Search Input */}
           <div className="search-box">
-            <Search size={16} className="search-icon" />
+            <Search size={15} className="search-icon" />
             <input
               type="text"
               className="search-input"
@@ -60,7 +77,7 @@ export const Navbar: React.FC<NavbarProps> = ({
             <option value="Completed">Completed</option>
           </select>
 
-          {/* DB Status Badge */}
+          {/* Database Status Indicator */}
           <button className="db-badge" onClick={onOpenDbModal} title="Click to view database settings">
             <span className="db-dot"></span>
             <Database size={13} />
@@ -69,7 +86,7 @@ export const Navbar: React.FC<NavbarProps> = ({
 
           {/* New Task Button */}
           <button className="btn btn-primary" onClick={onOpenCreateModal}>
-            <Plus size={18} />
+            <Plus size={16} />
             <span>New Task</span>
           </button>
         </div>

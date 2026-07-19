@@ -6,7 +6,6 @@ export interface Member {
   name: string;
   email: string;
   avatar_color: string;
-  role: string;
 }
 
 export interface Task {
@@ -21,13 +20,13 @@ export interface Task {
   updated_at?: string;
 }
 
-// In-Memory Fallback State (Ensures 100% immediate out-of-the-box functionality)
+// In-Memory Fallback State with new 5 team members
 const DEFAULT_MEMBERS: Member[] = [
-  { id: 'mem-1', name: 'Neelam Vishwa', email: 'neelam@taskboard.com', avatar_color: '#2563eb', role: 'Senior Frontend Engineer' },
-  { id: 'mem-2', name: 'Rahul', email: 'rahul@taskboard.com', avatar_color: '#7c3aed', role: 'Full Stack Developer' },
-  { id: 'mem-3', name: 'Priya', email: 'priya@taskboard.com', avatar_color: '#ec4899', role: 'UI/UX Designer' },
-  { id: 'mem-4', name: 'Arjun', email: 'arjun@taskboard.com', avatar_color: '#059669', role: 'Backend Engineer' },
-  { id: 'mem-5', name: 'Sneha', email: 'sneha@taskboard.com', avatar_color: '#d97706', role: 'Product Manager' },
+  { id: 'mem-1', name: 'Arun', email: 'arun@taskboard.com', avatar_color: '#2563eb' },
+  { id: 'mem-2', name: 'Vishwa', email: 'vishwa@taskboard.com', avatar_color: '#7c3aed' },
+  { id: 'mem-3', name: 'Manish', email: 'manish@taskboard.com', avatar_color: '#ec4899' },
+  { id: 'mem-4', name: 'Tata', email: 'tata@taskboard.com', avatar_color: '#059669' },
+  { id: 'mem-5', name: 'Pavan', email: 'pavan@taskboard.com', avatar_color: '#d97706' },
 ];
 
 const getInitialDueDate = (daysToAdd: number) => {
@@ -39,17 +38,17 @@ const getInitialDueDate = (daysToAdd: number) => {
 let memoryTasks: Task[] = [
   {
     id: 'task-101',
-    title: 'Design TaskBoard UI Layout',
-    description: 'Create clean responsive wireframes with white theme and blue accents.',
-    assigned_to: 'mem-3',
+    title: 'Design minimal dashboard wireframes',
+    description: 'Focus on ultra-clean white layout and high contrast.',
+    assigned_to: 'mem-2',
     status: 'Completed',
     priority: 'High',
     due_date: getInitialDueDate(2),
   },
   {
     id: 'task-102',
-    title: 'Setup PostgreSQL Schema & Migration',
-    description: 'Configure tables for team members and task assignments with persistent storage.',
+    title: 'Configure PostgreSQL schema & connection',
+    description: 'Connect Neon database with persistent storage.',
     assigned_to: 'mem-4',
     status: 'In Progress',
     priority: 'High',
@@ -57,8 +56,8 @@ let memoryTasks: Task[] = [
   },
   {
     id: 'task-103',
-    title: 'Implement Dashboard Component',
-    description: 'Build responsive 5-member card grid with real-time state updates.',
+    title: 'Build drag-and-drop task re-assignment',
+    description: 'Allow dragging task cards across member columns.',
     assigned_to: 'mem-1',
     status: 'In Progress',
     priority: 'Medium',
@@ -66,17 +65,17 @@ let memoryTasks: Task[] = [
   },
   {
     id: 'task-104',
-    title: 'API Routes for CRUD Operations',
-    description: 'Create GET, POST, PUT, DELETE REST endpoints for tasks.',
-    assigned_to: 'mem-2',
+    title: 'Implement single-click task completion',
+    description: 'Checkbox toggle for fast task completion.',
+    assigned_to: 'mem-3',
     status: 'Pending',
     priority: 'Medium',
     due_date: getInitialDueDate(5),
   },
   {
     id: 'task-105',
-    title: 'Product Backlog Prioritization',
-    description: 'Review team member workloads and assign upcoming sprint deliverables.',
+    title: 'Review workload distribution',
+    description: 'Ensure balanced task allocation across team members.',
     assigned_to: 'mem-5',
     status: 'Pending',
     priority: 'Low',
@@ -118,8 +117,7 @@ async function ensureTablesExist(pool: Pool) {
         id VARCHAR(50) PRIMARY KEY,
         name VARCHAR(100) NOT NULL,
         email VARCHAR(100),
-        avatar_color VARCHAR(30) DEFAULT 'blue',
-        role VARCHAR(50) DEFAULT 'Team Member',
+        avatar_color VARCHAR(30) DEFAULT '#2563eb',
         created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
       );
     `);
@@ -139,15 +137,15 @@ async function ensureTablesExist(pool: Pool) {
       );
     `);
 
-    // Insert 5 team members if empty
+    // Insert/Update 5 team members
     await pool.query(`
-      INSERT INTO members (id, name, email, avatar_color, role) VALUES
-      ('mem-1', 'Neelam Vishwa', 'neelam@taskboard.com', '#2563eb', 'Senior Frontend Engineer'),
-      ('mem-2', 'Rahul', 'rahul@taskboard.com', '#7c3aed', 'Full Stack Developer'),
-      ('mem-3', 'Priya', 'priya@taskboard.com', '#ec4899', 'UI/UX Designer'),
-      ('mem-4', 'Arjun', 'arjun@taskboard.com', '#059669', 'Backend Engineer'),
-      ('mem-5', 'Sneha', 'sneha@taskboard.com', '#d97706', 'Product Manager')
-      ON CONFLICT (id) DO NOTHING;
+      INSERT INTO members (id, name, email, avatar_color) VALUES
+      ('mem-1', 'Arun', 'arun@taskboard.com', '#2563eb'),
+      ('mem-2', 'Vishwa', 'vishwa@taskboard.com', '#7c3aed'),
+      ('mem-3', 'Manish', 'manish@taskboard.com', '#ec4899'),
+      ('mem-4', 'Tata', 'tata@taskboard.com', '#059669'),
+      ('mem-5', 'Pavan', 'pavan@taskboard.com', '#d97706')
+      ON CONFLICT (id) DO UPDATE SET name = EXCLUDED.name;
     `);
 
     tablesInitialized = true;
